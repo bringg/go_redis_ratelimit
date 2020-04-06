@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-redis/redis/v7"
 
-	"github.com/shareed2k/go_limiter"
+	"github.com/bringg/go_redis_ratelimit"
 )
 
 func main() {

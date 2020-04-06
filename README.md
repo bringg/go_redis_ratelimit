@@ -1,6 +1,6 @@
 # Rate limiting with few algorithms (Sliding Window, Leaky Bucket)
 
-[![Build Status](https://travis-ci.org/Shareed2k/go_limiter.svg?branch=master)](github.com/shareed2k/go_limiter)
+[![Build Status](https://travis-ci.org/Shareed2k/go_limiter.svg?branch=master)](github.com/bringg/go_redis_ratelimit)
 
 This package is based on [go-redis/redis_rate](github.com/go-redis/redis_rate) and implements GCRA (aka leaky bucket) for rate limiting based on Redis. The code requires Redis version 3.2 or newer since it relies on replicate_commands feature.
 
@@ -9,12 +9,12 @@ This package is based on [go-redis/redis_rate](github.com/go-redis/redis_rate) a
 go_limiter requires a Go version with [Modules](https://github.com/golang/go/wiki/Modules) support and uses import versioning. So please make sure to initialize a Go module before installing go_limiter:
 
 ```shell
-go get github.com/shareed2k/go_limiter
+go get github.com/bringg/go_redis_ratelimit
 ```
 
 Import:
 ```go
-import "github.com/shareed2k/go_limiter"
+import "github.com/bringg/go_redis_ratelimit"
 ```
 
 ## Examplle
@@ -25,7 +25,7 @@ import (
 
 	"github.com/go-redis/redis/v7"
 
-	"github.com/shareed2k/go_limiter"
+	"github.com/bringg/go_redis_ratelimit"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/shareed2k/go_limiter
+module github.com/bringg/go_redis_ratelimit
 
 go 1.14
 
