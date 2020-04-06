@@ -1,4 +1,4 @@
-package go_limiter
+package go_redis_ratelimit
 
 import (
 	"errors"

@@ -1,5 +1,5 @@
 // https://github.com/go-redis/redis_rate
-package go_limiter
+package go_redis_ratelimit
 
 import (
 	"strconv"

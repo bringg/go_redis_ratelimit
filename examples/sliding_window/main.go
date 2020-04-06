@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-redis/redis/v7"
 
-	"github.com/shareed2k/go_limiter"
+	"github.com/bringg/go_redis_ratelimit"
 )
 
 func main() {
@@ -16,9 +16,9 @@ func main() {
 	}
 	client := redis.NewClient(option)
 
-	limiter := go_limiter.NewLimiter(client)
-	res, err := limiter.Allow("api_gateway:klu4ik", &go_limiter.Limit{
-		Algorithm: go_limiter.SlidingWindowAlgorithm,
+	limiter := go_redis_ratelimit.NewLimiter(client)
+	res, err := limiter.Allow("api_gateway:klu4ik", &go_redis_ratelimit.Limit{
+		Algorithm: go_redis_ratelimit.SlidingWindowAlgorithm,
 		Rate:      10,
 		Period:    2 * time.Minute,
 	})
