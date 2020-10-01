@@ -11,16 +11,19 @@ const (
 	DefaultPrefix = "limiter"
 	GCRAAlgorithm = iota
 	SlidingWindowAlgorithm
+	SlidingWindowCloudflareAlgorithm
 )
 
 var (
 	algorithmNames = map[uint]string{
-		GCRAAlgorithm:          GCRAAlgorithmName,
-		SlidingWindowAlgorithm: SlidingWindowAlgorithmName,
+		GCRAAlgorithm:                    GCRAAlgorithmName,
+		SlidingWindowAlgorithm:           SlidingWindowAlgorithmName,
+		SlidingWindowCloudflareAlgorithm: SlidingWindowCloudflareAlgorithmName,
 	}
 	algorithmKeys = map[string]uint{
-		GCRAAlgorithmName:          GCRAAlgorithm,
-		SlidingWindowAlgorithmName: SlidingWindowAlgorithm,
+		GCRAAlgorithmName:                    GCRAAlgorithm,
+		SlidingWindowAlgorithmName:           SlidingWindowAlgorithm,
+		SlidingWindowCloudflareAlgorithmName: SlidingWindowCloudflareAlgorithm,
 	}
 )
 
@@ -94,6 +97,8 @@ func (l *Limiter) Allow(key string, limit *Limit) (*Result, error) {
 	switch limit.Algorithm {
 	case SlidingWindowAlgorithm:
 		algo = &slidingWindow{limit: limit, rdb: l.rdb}
+	case SlidingWindowCloudflareAlgorithm:
+		algo = &slidingWindoCloudflare{limit: limit, rdb: l.rdb}
 	case GCRAAlgorithm:
 		algo = &gcra{limit: limit, rdb: l.rdb}
 	default:
