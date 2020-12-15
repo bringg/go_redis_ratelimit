@@ -1,12 +1,16 @@
 package go_redis_ratelimit
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/bringg/go_redis_ratelimit/algorithm/gcra"
+	"github.com/bringg/go_redis_ratelimit/algorithm/sliding_window"
 )
 
 func rateLimiter() *Limiter {
@@ -19,7 +23,7 @@ func rateLimiter() *Limiter {
 		Addr: mr.Addr(),
 	})
 
-	if err := client.FlushDB().Err(); err != nil {
+	if err := client.FlushDB(context.Background()).Err(); err != nil {
 		panic(err)
 	}
 	return NewLimiter(client)
@@ -29,7 +33,7 @@ func TestLimiter_Allow(t *testing.T) {
 	l := rateLimiter()
 
 	limit := &Limit{
-		Algorithm: SlidingWindowAlgorithm,
+		Algorithm: sliding_window.AlgorithmName,
 		Rate:      10,
 		Period:    time.Minute,
 		Burst:     10,
@@ -44,7 +48,7 @@ func TestLimiter_Allow(t *testing.T) {
 	})
 
 	t.Run("gcra", func(t *testing.T) {
-		limit.Algorithm = GCRAAlgorithm
+		limit.Algorithm = gcra.AlgorithmName
 
 		res, err := l.Allow("test_me", limit)
 
@@ -58,7 +62,7 @@ func TestLimiter_Allow(t *testing.T) {
 func BenchmarkAllow_Simple(b *testing.B) {
 	l := rateLimiter()
 	limit := &Limit{
-		Algorithm: SlidingWindowAlgorithm,
+		Algorithm: sliding_window.AlgorithmName,
 		Rate:      10000,
 		Period:    time.Second,
 		Burst:     10000,
@@ -79,7 +83,7 @@ func BenchmarkAllow_Simple(b *testing.B) {
 func BenchmarkAllow_GCRA(b *testing.B) {
 	l := rateLimiter()
 	limit := &Limit{
-		Algorithm: SlidingWindowAlgorithm,
+		Algorithm: sliding_window.AlgorithmName,
 		Rate:      10000,
 		Period:    time.Second,
 		Burst:     10000,

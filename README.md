@@ -20,10 +20,11 @@ import "github.com/bringg/go_redis_ratelimit"
 ## Examplle
 ```go
 import (
+	"context"
 	"log"
 	"time"
 
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 
 	"github.com/bringg/go_redis_ratelimit"
 )
@@ -34,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 	client := redis.NewClient(option)
-	_ = client.FlushDB().Err()
+	_ = client.FlushDB(context.Background()).Err()
 
 	limiter := go_redis_ratelimit.NewLimiter(client)
 	res, err := limiter.Allow("api_gateway_cache:klu4ik", &go_redis_ratelimit.Limit{
@@ -52,5 +53,5 @@ func main() {
 	log.Println("===> ", res.Allowed, res.Remaining)
 	// Output: true 1
 }
- 
+
 ```

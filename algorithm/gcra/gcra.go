@@ -1,35 +1,39 @@
 // https://github.com/go-redis/redis_rate
-package go_redis_ratelimit
+package gcra
 
 import (
+	"context"
 	"strconv"
 	"time"
+
+	"github.com/bringg/go_redis_ratelimit/algorithm"
 )
 
-const GCRAAlgorithmName = "gcra"
+const AlgorithmName = "gcra"
 
-type gcra struct {
-	key   string
-	limit *Limit
-	rdb   rediser
+type GCRA struct {
+	Limit algorithm.Limit
+	RDB   algorithm.Rediser
+
+	key string
 }
 
 // Allow is shorthand for AllowN(key, 1).
-func (c *gcra) Allow() (*Result, error) {
+func (c *GCRA) Allow() (*algorithm.Result, error) {
 	return c.AllowN(1)
 }
 
 // SetKey _
-func (c *gcra) SetKey(key string) {
+func (c *GCRA) SetKey(key string) {
 	c.key = key
 }
 
 // AllowN reports whether n events may happen at time now.
-func (c *gcra) AllowN(n int) (*Result, error) {
-	limit := c.limit
-	values := []interface{}{limit.Burst, limit.Rate, limit.Period.Seconds(), n}
+func (c *GCRA) AllowN(n int) (*algorithm.Result, error) {
+	limit := c.Limit
+	values := []interface{}{limit.GetBurst(), limit.GetRate(), limit.GetPeriod().Seconds(), n}
 
-	v, err := script.Run(c.rdb, []string{c.key}, values...).Result()
+	v, err := script.Run(context.Background(), c.RDB, []string{c.key}, values...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +50,7 @@ func (c *gcra) AllowN(n int) (*Result, error) {
 		return nil, err
 	}
 
-	res := &Result{
+	res := &algorithm.Result{
 		Limit:      limit,
 		Key:        c.key,
 		Allowed:    values[0].(int64) == 0,
@@ -61,5 +65,6 @@ func dur(f float64) time.Duration {
 	if f == -1 {
 		return -1
 	}
+
 	return time.Duration(f * float64(time.Second))
 }

@@ -4,121 +4,80 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
+
+	"github.com/bringg/go_redis_ratelimit/algorithm"
+	"github.com/bringg/go_redis_ratelimit/algorithm/cloudflare"
+	"github.com/bringg/go_redis_ratelimit/algorithm/gcra"
+	"github.com/bringg/go_redis_ratelimit/algorithm/sliding_window"
+	sliding_windowV2 "github.com/bringg/go_redis_ratelimit/algorithm/sliding_window/v2"
 )
 
 const (
 	DefaultPrefix = "limiter"
-	GCRAAlgorithm = iota
-	SlidingWindowAlgorithm
-)
-
-var (
-	algorithmNames = map[uint]string{
-		GCRAAlgorithm:          GCRAAlgorithmName,
-		SlidingWindowAlgorithm: SlidingWindowAlgorithmName,
-	}
-	algorithmKeys = map[string]uint{
-		GCRAAlgorithmName:          GCRAAlgorithm,
-		SlidingWindowAlgorithmName: SlidingWindowAlgorithm,
-	}
 )
 
 type (
 	Algorithm interface {
-		Allow() (*Result, error)
+		Allow() (*algorithm.Result, error)
 		SetKey(string)
 	}
 
-	rediser interface {
-		Eval(script string, keys []string, args ...interface{}) *redis.Cmd
-		EvalSha(sha1 string, keys []string, args ...interface{}) *redis.Cmd
-		ScriptExists(hashes ...string) *redis.BoolSliceCmd
-		ScriptLoad(script string) *redis.StringCmd
-	}
-
 	Limit struct {
-		Algorithm uint
+		Algorithm string
+		Burst     int64
 		Rate      int64
 		Period    time.Duration
-		Burst     int64
 	}
 
-	Result struct {
-		// Limit is the limit that was used to obtain this result.
-		Limit *Limit
-
-		// Key is the key of limit
-		Key string
-
-		// Allowed reports whether event may happen at time now.
-		Allowed bool
-
-		// Remaining is the maximum number of requests that could be
-		// permitted instantaneously for this key given the current
-		// state. For example, if a rate limiter allows 10 requests per
-		// second and has already received 6 requests for this key this
-		// second, Remaining would be 4.
-		Remaining int64
-
-		// RetryAfter is the time until the next request will be permitted.
-		// It should be -1 unless the rate limit has been exceeded.
-		RetryAfter time.Duration
-
-		// ResetAfter is the time until the RateLimiter returns to its
-		// initial state for a given key. For example, if a rate limiter
-		// manages requests per second and received one request 200ms ago,
-		// Reset would return 800ms. You can also think of this as the time
-		// until Limit and Remaining will be equal.
-		ResetAfter time.Duration
+	// Limiter controls how frequently events are allowed to happen.
+	Limiter struct {
+		rdb    *redis.Client
+		Prefix string
 	}
 )
 
-// Limiter controls how frequently events are allowed to happen.
-type Limiter struct {
-	rdb    rediser
-	Prefix string
-}
-
 // NewLimiter returns a new Limiter.
-func NewLimiter(rdb rediser) *Limiter {
+func NewLimiter(rdb *redis.Client) *Limiter {
 	return &Limiter{
 		rdb:    rdb,
 		Prefix: DefaultPrefix,
 	}
 }
 
-func (l *Limiter) Allow(key string, limit *Limit) (*Result, error) {
+func (l *Limiter) Allow(key string, limit *Limit) (*algorithm.Result, error) {
 	var algo Algorithm
 
 	switch limit.Algorithm {
-	case SlidingWindowAlgorithm:
-		algo = &slidingWindow{limit: limit, rdb: l.rdb}
-	case GCRAAlgorithm:
-		algo = &gcra{limit: limit, rdb: l.rdb}
+	case sliding_windowV2.AlgorithmName:
+		algo = &sliding_windowV2.SlidingWindow{Limit: limit, RDB: l.rdb}
+	case sliding_window.AlgorithmName:
+		algo = &sliding_window.SlidingWindow{Limit: limit, RDB: l.rdb}
+	case cloudflare.AlgorithmName:
+		algo = &cloudflare.Cloudflare{Limit: limit, RDB: l.rdb}
+	case gcra.AlgorithmName:
+		algo = &gcra.GCRA{Limit: limit, RDB: l.rdb}
 	default:
 		return nil, errors.New("algorithm is not supported")
 	}
 
-	name, _ := GetAlgorithmName(limit.Algorithm)
-
-	algo.SetKey(l.Prefix + ":" + name + ":" + key)
+	algo.SetKey(l.Prefix + ":" + limit.Algorithm + ":" + key)
 
 	return algo.Allow()
 }
 
-func GetAlgorithmName(a uint) (string, bool) {
-	if name, ok := algorithmNames[a]; ok {
-		return name, ok
-	}
-
-	return "", false
+func (l *Limit) GetAlgorithm() string {
+	return l.Algorithm
 }
 
-func GetAlgorithmKey(n string) (uint, bool) {
-	if key, ok := algorithmKeys[n]; ok {
-		return key, ok
-	}
+func (l *Limit) GetBurst() int64 {
+	return l.Burst
+}
 
-	return 0, false
+func (l *Limit) GetRate() int64 {
+	return l.Rate
+}
+
+func (l *Limit) GetPeriod() time.Duration {
+	return l.Period
 }
