@@ -158,7 +158,7 @@ func (c *SlidingWindow) retryAfter(ctx context.Context) time.Duration {
 
 	d, err := c.deltaFrom(ctx, now)
 	if err != nil {
-		log.Println("Failed to get the duration until the next call is allowed: %v", err)
+		log.Printf("Failed to get the duration until the next call is allowed: %v", err)
 
 		return minWait
 	}
