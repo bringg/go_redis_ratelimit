@@ -1,12 +1,18 @@
 package go_redis_ratelimit
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/bringg/go_redis_ratelimit/algorithm/cloudflare"
+	"github.com/bringg/go_redis_ratelimit/algorithm/gcra"
+	"github.com/bringg/go_redis_ratelimit/algorithm/sliding_window"
+	swv2 "github.com/bringg/go_redis_ratelimit/algorithm/sliding_window/v2"
 )
 
 func rateLimiter() *Limiter {
@@ -19,9 +25,10 @@ func rateLimiter() *Limiter {
 		Addr: mr.Addr(),
 	})
 
-	if err := client.FlushDB().Err(); err != nil {
+	if err := client.FlushDB(context.Background()).Err(); err != nil {
 		panic(err)
 	}
+
 	return NewLimiter(client)
 }
 
@@ -29,14 +36,14 @@ func TestLimiter_Allow(t *testing.T) {
 	l := rateLimiter()
 
 	limit := &Limit{
-		Algorithm: SlidingWindowAlgorithm,
+		Algorithm: sliding_window.AlgorithmName,
 		Rate:      10,
 		Period:    time.Minute,
 		Burst:     10,
 	}
 
-	t.Run("simple", func(t *testing.T) {
-		res, err := l.Allow("test_me", limit)
+	t.Run("sliding_window", func(t *testing.T) {
+		res, err := l.Allow("test_me"+t.Name(), limit)
 
 		assert.Nil(t, err)
 		assert.True(t, res.Allowed)
@@ -44,55 +51,76 @@ func TestLimiter_Allow(t *testing.T) {
 	})
 
 	t.Run("gcra", func(t *testing.T) {
-		limit.Algorithm = GCRAAlgorithm
+		limit.Algorithm = gcra.AlgorithmName
 
-		res, err := l.Allow("test_me", limit)
+		res, err := l.Allow("test_me"+t.Name(), limit)
 
 		assert.Nil(t, err)
 		assert.True(t, res.Allowed)
 		assert.Equal(t, int64(9), res.Remaining)
 		assert.Equal(t, res.RetryAfter, time.Duration(-1))
 	})
-}
 
-func BenchmarkAllow_Simple(b *testing.B) {
-	l := rateLimiter()
-	limit := &Limit{
-		Algorithm: SlidingWindowAlgorithm,
-		Rate:      10000,
-		Period:    time.Second,
-		Burst:     10000,
-	}
+	t.Run("cloudflare", func(t *testing.T) {
+		limit.Algorithm = cloudflare.AlgorithmName
 
-	b.ResetTimer()
+		res, err := l.Allow("test_me"+t.Name(), limit)
 
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			_, err := l.Allow("foo", limit)
-			if err != nil {
-				b.Fatal(err)
-			}
-		}
+		assert.Nil(t, err)
+		assert.True(t, res.Allowed)
+		assert.Equal(t, int64(9), res.Remaining)
+		assert.Equal(t, res.RetryAfter, time.Duration(0))
 	})
 }
 
-func BenchmarkAllow_GCRA(b *testing.B) {
-	l := rateLimiter()
-	limit := &Limit{
-		Algorithm: SlidingWindowAlgorithm,
-		Rate:      10000,
-		Period:    time.Second,
-		Burst:     10000,
+func Benchmark_CloudflareAlgorithm(b *testing.B) {
+	limiter := rateLimiter()
+
+	for i := 0; i < b.N; i++ {
+		limiter.Allow("cloudflare", &Limit{
+			Algorithm: cloudflare.AlgorithmName,
+			Rate:      2000,
+			Burst:     2000,
+			Period:    60 * time.Second,
+		})
 	}
+}
 
-	b.ResetTimer()
+func Benchmark_GcraAlgorithm(b *testing.B) {
+	limiter := rateLimiter()
 
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			_, err := l.Allow("foo", limit)
-			if err != nil {
-				b.Fatal(err)
-			}
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		limiter.Allow("gcra", &Limit{
+			Algorithm: gcra.AlgorithmName,
+			Rate:      2000,
+			Burst:     2000,
+			Period:    2 * time.Second,
+		})
+	}
+}
+
+func Benchmark_SlidingWindowAlgorithm(b *testing.B) {
+	limiter := rateLimiter()
+
+	for i := 0; i < b.N; i++ {
+		limiter.Allow("sliding_window", &Limit{
+			Algorithm: sliding_window.AlgorithmName,
+			Rate:      2000,
+			Burst:     2000,
+			Period:    2 * time.Second,
+		})
+	}
+}
+
+func Benchmark_SlidingWindowV2Algorithm(b *testing.B) {
+	limiter := rateLimiter()
+
+	for i := 0; i < b.N; i++ {
+		limiter.Allow("sliding_window_v2", &Limit{
+			Algorithm: swv2.AlgorithmName,
+			Rate:      2000,
+			Burst:     2000,
+			Period:    2 * time.Second,
+		})
+	}
 }
