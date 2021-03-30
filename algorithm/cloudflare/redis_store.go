@@ -20,7 +20,7 @@ func (s *RedisDataStore) Inc(key string, window time.Time) error {
 
 	if _, err := s.RDB.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
 		pipe.Incr(ctx, key)
-		pipe.Expire(ctx, key, time.Now().Sub(window))
+		pipe.Expire(ctx, key, time.Since(window)+time.Second)
 
 		return nil
 	}); err != nil {

@@ -18,6 +18,7 @@ type (
 	Rediser interface {
 		TxPipeline() redis.Pipeliner
 		TxPipelined(ctx context.Context, fn func(pipe redis.Pipeliner) error) ([]redis.Cmder, error)
+		Del(ctx context.Context, keys ...string) *redis.IntCmd
 		Get(ctx context.Context, key string) *redis.StringCmd
 		Incr(ctx context.Context, key string) *redis.IntCmd
 		Eval(ctx context.Context, script string, keys []string, args ...interface{}) *redis.Cmd

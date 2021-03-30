@@ -7,7 +7,7 @@ import (
 	"github.com/go-redis/redis/v8"
 
 	"github.com/bringg/go_redis_ratelimit"
-	"github.com/bringg/go_redis_ratelimit/algorithm/sliding_window"
+	"github.com/bringg/go_redis_ratelimit/algorithm/cloudflare"
 )
 
 func main() {
@@ -19,9 +19,9 @@ func main() {
 
 	limiter := go_redis_ratelimit.NewLimiter(client)
 	res, err := limiter.Allow("api_gateway:klu4ik", &go_redis_ratelimit.Limit{
-		Algorithm: sliding_window.AlgorithmName,
+		Algorithm: cloudflare.AlgorithmName,
 		Rate:      10,
-		Period:    2 * time.Minute,
+		Period:    10 * time.Second,
 	})
 
 	if err != nil {
