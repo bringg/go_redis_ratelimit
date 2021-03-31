@@ -20,7 +20,8 @@ type Cloudflare struct {
 func (c *Cloudflare) Allow() (*algorithm.Result, error) {
 	rate := c.Limit.GetRate() - 1
 	rateLimiter := ratelimiter.New(&RedisDataStore{
-		RDB: c.RDB,
+		RDB:            c.RDB,
+		ExpirationTime: 2 * c.Limit.GetPeriod(),
 	}, rate, c.Limit.GetPeriod())
 
 	limitStatus, err := rateLimiter.Check(c.key)
