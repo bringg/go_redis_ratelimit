@@ -12,8 +12,9 @@ import (
 	"github.com/bringg/go_redis_ratelimit/algorithm/cloudflare"
 	"github.com/bringg/go_redis_ratelimit/algorithm/gcra"
 	"github.com/bringg/go_redis_ratelimit/algorithm/sliding_window"
-	swv2 "github.com/bringg/go_redis_ratelimit/algorithm/sliding_window/v2"
 )
+
+var limiter = rateLimiter()
 
 func rateLimiter() *Limiter {
 	mr, err := miniredis.Run()
@@ -29,7 +30,12 @@ func rateLimiter() *Limiter {
 		panic(err)
 	}
 
-	return NewLimiter(client)
+	l, err := NewLimiter(client)
+	if err != nil {
+		panic(err)
+	}
+
+	return l
 }
 
 func TestLimiter_Allow(t *testing.T) {
@@ -74,53 +80,32 @@ func TestLimiter_Allow(t *testing.T) {
 }
 
 func Benchmark_CloudflareAlgorithm(b *testing.B) {
-	limiter := rateLimiter()
-
 	for i := 0; i < b.N; i++ {
 		limiter.Allow("cloudflare", &Limit{
 			Algorithm: cloudflare.AlgorithmName,
 			Rate:      2000,
-			Burst:     2000,
 			Period:    60 * time.Second,
 		})
 	}
 }
 
 func Benchmark_GcraAlgorithm(b *testing.B) {
-	limiter := rateLimiter()
-
 	for i := 0; i < b.N; i++ {
 		limiter.Allow("gcra", &Limit{
 			Algorithm: gcra.AlgorithmName,
 			Rate:      2000,
 			Burst:     2000,
-			Period:    2 * time.Second,
+			Period:    10 * time.Second,
 		})
 	}
 }
 
 func Benchmark_SlidingWindowAlgorithm(b *testing.B) {
-	limiter := rateLimiter()
-
 	for i := 0; i < b.N; i++ {
 		limiter.Allow("sliding_window", &Limit{
 			Algorithm: sliding_window.AlgorithmName,
 			Rate:      2000,
-			Burst:     2000,
-			Period:    2 * time.Second,
-		})
-	}
-}
-
-func Benchmark_SlidingWindowV2Algorithm(b *testing.B) {
-	limiter := rateLimiter()
-
-	for i := 0; i < b.N; i++ {
-		limiter.Allow("sliding_window_v2", &Limit{
-			Algorithm: swv2.AlgorithmName,
-			Rate:      2000,
-			Burst:     2000,
-			Period:    2 * time.Second,
+			Period:    10 * time.Second,
 		})
 	}
 }

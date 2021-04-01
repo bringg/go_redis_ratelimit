@@ -11,21 +11,26 @@ import (
 const AlgorithmName = "sliding_window"
 
 type SlidingWindow struct {
-	Limit algorithm.Limit
-	RDB   algorithm.Rediser
-
-	key string
+	RDB algorithm.Rediser
 }
 
-func (c *SlidingWindow) SetKey(key string) {
-	c.key = key
+func init() {
+	algorithm.Register(&algorithm.RegInfo{
+		Name:         AlgorithmName,
+		NewAlgorithm: NewAlgorithm,
+	})
 }
 
-func (c *SlidingWindow) Allow() (r *algorithm.Result, err error) {
-	limit := c.Limit
+func NewAlgorithm(rdb algorithm.Rediser) (algorithm.Algorithm, error) {
+	return &SlidingWindow{
+		RDB: rdb,
+	}, nil
+}
+
+func (c *SlidingWindow) Allow(key string, limit algorithm.Limit) (r *algorithm.Result, err error) {
 	values := []interface{}{limit.GetRate(), limit.GetPeriod().Seconds()}
 
-	v, err := script2.Run(context.Background(), c.RDB, []string{c.key}, values...).Result()
+	v, err := script.Run(context.Background(), c.RDB, []string{key}, values...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +44,7 @@ func (c *SlidingWindow) Allow() (r *algorithm.Result, err error) {
 
 	return &algorithm.Result{
 		Limit:      limit,
-		Key:        c.key,
+		Key:        key,
 		Allowed:    values[0].(int64) == 1,
 		Remaining:  values[1].(int64),
 		RetryAfter: dur(retryAfter),

@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/bringg/go_redis_ratelimit"
+	limiter "github.com/bringg/go_redis_ratelimit"
 	"github.com/bringg/go_redis_ratelimit/algorithm/cloudflare"
 )
 
@@ -15,10 +15,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	client := redis.NewClient(option)
 
-	limiter := go_redis_ratelimit.NewLimiter(client)
-	res, err := limiter.Allow("api_gateway:klu4ik", &go_redis_ratelimit.Limit{
+	client := redis.NewClient(option)
+	l, err := limiter.NewLimiter(client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := l.Allow("api_gateway:klu4ik", &limiter.Limit{
 		Algorithm: cloudflare.AlgorithmName,
 		Rate:      10,
 		Period:    10 * time.Second,

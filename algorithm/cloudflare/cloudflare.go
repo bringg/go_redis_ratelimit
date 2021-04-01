@@ -11,52 +11,58 @@ import (
 const AlgorithmName = "cloudflare"
 
 type Cloudflare struct {
-	Limit algorithm.Limit
-	RDB   algorithm.Rediser
-
-	key string
+	RDB algorithm.Rediser
 }
 
-func (c *Cloudflare) Allow() (*algorithm.Result, error) {
-	rate := c.Limit.GetRate() - 1
+func init() {
+	algorithm.Register(&algorithm.RegInfo{
+		Name:         AlgorithmName,
+		NewAlgorithm: NewAlgorithm,
+	})
+}
+
+func NewAlgorithm(rdb algorithm.Rediser) (algorithm.Algorithm, error) {
+	return &Cloudflare{
+		RDB: rdb,
+	}, nil
+}
+
+func (c *Cloudflare) Allow(key string, limit algorithm.Limit) (*algorithm.Result, error) {
+	rate := limit.GetRate() - 1
 	rateLimiter := ratelimiter.New(&RedisDataStore{
 		RDB:            c.RDB,
-		ExpirationTime: 2 * c.Limit.GetPeriod(),
-	}, rate, c.Limit.GetPeriod())
+		ExpirationTime: 2 * limit.GetPeriod(),
+	}, rate, limit.GetPeriod())
 
-	limitStatus, err := rateLimiter.Check(c.key)
+	limitStatus, err := rateLimiter.Check(key)
 	if err != nil {
 		return nil, err
 	}
 
-	rateKey := mapKey(c.key, time.Now().UTC().Truncate(c.Limit.GetPeriod()))
+	rateKey := mapKey(key, time.Now().UTC().Truncate(limit.GetPeriod()))
 	currentRate := int64(limitStatus.CurrentRate)
 
 	if limitStatus.IsLimited {
 		return &algorithm.Result{
-			Limit:      c.Limit,
+			Limit:      limit,
 			Key:        rateKey,
 			Allowed:    false,
 			Remaining:  0,
 			RetryAfter: *limitStatus.LimitDuration,
-			ResetAfter: c.Limit.GetPeriod(),
+			ResetAfter: limit.GetPeriod(),
 		}, nil
 	}
 
-	if err := rateLimiter.Inc(c.key); err != nil {
+	if err := rateLimiter.Inc(key); err != nil {
 		return nil, err
 	}
 
 	return &algorithm.Result{
-		Limit:      c.Limit,
+		Limit:      limit,
 		Key:        rateKey,
 		Allowed:    true,
 		Remaining:  rate - currentRate,
 		RetryAfter: 0,
-		ResetAfter: c.Limit.GetPeriod(),
+		ResetAfter: limit.GetPeriod(),
 	}, nil
-}
-
-func (c *Cloudflare) SetKey(key string) {
-	c.key = key
 }

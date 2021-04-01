@@ -2,34 +2,43 @@ package algorithm
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 )
 
+var (
+	Registry []*RegInfo
+)
+
 type (
 	Limit interface {
-		GetAlgorithm() string
-		GetBurst() int64
 		GetRate() int64
+		GetBurst() int64
+		GetAlgorithm() string
 		GetPeriod() time.Duration
 	}
 
 	Rediser interface {
 		TxPipeline() redis.Pipeliner
-		TxPipelined(ctx context.Context, fn func(pipe redis.Pipeliner) error) ([]redis.Cmder, error)
-		Del(ctx context.Context, keys ...string) *redis.IntCmd
-		Get(ctx context.Context, key string) *redis.StringCmd
 		Incr(ctx context.Context, key string) *redis.IntCmd
-		Eval(ctx context.Context, script string, keys []string, args ...interface{}) *redis.Cmd
-		EvalSha(ctx context.Context, sha1 string, keys []string, args ...interface{}) *redis.Cmd
-		ScriptExists(ctx context.Context, hashes ...string) *redis.BoolSliceCmd
-		ScriptLoad(ctx context.Context, script string) *redis.StringCmd
-		ZRangeByScoreWithScores(ctx context.Context, key string, opt *redis.ZRangeBy) *redis.ZSliceCmd
-		ZRemRangeByScore(ctx context.Context, key string, min string, max string) *redis.IntCmd
 		ZCard(ctx context.Context, key string) *redis.IntCmd
+		Get(ctx context.Context, key string) *redis.StringCmd
+		Del(ctx context.Context, keys ...string) *redis.IntCmd
+		ScriptLoad(ctx context.Context, script string) *redis.StringCmd
+		ScriptExists(ctx context.Context, hashes ...string) *redis.BoolSliceCmd
 		ZAdd(ctx context.Context, key string, members ...*redis.Z) *redis.IntCmd
 		Expire(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd
+		ZRemRangeByScore(ctx context.Context, key string, min string, max string) *redis.IntCmd
+		Eval(ctx context.Context, script string, keys []string, args ...interface{}) *redis.Cmd
+		EvalSha(ctx context.Context, sha1 string, keys []string, args ...interface{}) *redis.Cmd
+		TxPipelined(ctx context.Context, fn func(pipe redis.Pipeliner) error) ([]redis.Cmder, error)
+		ZRangeByScoreWithScores(ctx context.Context, key string, opt *redis.ZRangeBy) *redis.ZSliceCmd
+	}
+
+	Algorithm interface {
+		Allow(key string, limit Limit) (*Result, error)
 	}
 
 	Result struct {
@@ -60,4 +69,23 @@ type (
 		// until Limit and Remaining will be equal.
 		ResetAfter time.Duration
 	}
+
+	RegInfo struct {
+		Name         string
+		NewAlgorithm func(rdb Rediser) (Algorithm, error)
+	}
 )
+
+func Register(info *RegInfo) {
+	Registry = append(Registry, info)
+}
+
+func Find(name string) (*RegInfo, error) {
+	for _, item := range Registry {
+		if item.Name == name {
+			return item, nil
+		}
+	}
+
+	return nil, fmt.Errorf("didn't find algorithm called %q", name)
+}
