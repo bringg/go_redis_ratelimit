@@ -17,7 +17,11 @@ func main() {
 	}
 	client := redis.NewClient(option)
 
-	limiter := go_redis_ratelimit.NewLimiter(client)
+	limiter, err := go_redis_ratelimit.NewLimiter(client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	res, err := limiter.Allow("api_gateway:klu4ik", &go_redis_ratelimit.Limit{
 		Algorithm: sliding_window.AlgorithmName,
 		Rate:      10,

@@ -2,7 +2,7 @@ package sliding_window
 
 import "github.com/go-redis/redis/v8"
 
-var script2 = redis.NewScript(`
+var script = redis.NewScript(`
 -- this script has side-effects, so it requires replicate commands mode
 redis.replicate_commands()
 

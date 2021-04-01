@@ -12,33 +12,38 @@ import (
 const AlgorithmName = "gcra"
 
 type GCRA struct {
-	Limit algorithm.Limit
-	RDB   algorithm.Rediser
-
-	key string
+	limiter *redis_rate.Limiter
 }
 
-func (c *GCRA) Allow() (*algorithm.Result, error) {
-	res, err := redis_rate.NewLimiter(c.RDB).Allow(context.Background(), c.key, redis_rate.Limit{
-		Rate:   int(c.Limit.GetRate()),
-		Period: c.Limit.GetPeriod(),
-		Burst:  int(c.Limit.GetBurst()),
+func init() {
+	algorithm.Register(&algorithm.RegInfo{
+		Name:         AlgorithmName,
+		NewAlgorithm: NewAlgorithm,
+	})
+}
+
+func NewAlgorithm(rdb algorithm.Rediser) (algorithm.Algorithm, error) {
+	return &GCRA{
+		limiter: redis_rate.NewLimiter(rdb),
+	}, nil
+}
+
+func (c *GCRA) Allow(key string, limit algorithm.Limit) (*algorithm.Result, error) {
+	res, err := c.limiter.Allow(context.Background(), key, redis_rate.Limit{
+		Rate:   int(limit.GetRate()),
+		Period: limit.GetPeriod(),
+		Burst:  int(limit.GetBurst()),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &algorithm.Result{
-		Limit:      c.Limit,
-		Key:        c.key,
+		Limit:      limit,
+		Key:        key,
 		Allowed:    res.Allowed == 1,
 		Remaining:  int64(res.Remaining),
 		RetryAfter: res.RetryAfter,
 		ResetAfter: res.ResetAfter,
 	}, nil
-}
-
-// SetKey _
-func (c *GCRA) SetKey(key string) {
-	c.key = key
 }
