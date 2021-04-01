@@ -6,38 +6,31 @@ import (
 	"github.com/go-redis/redis/v8"
 
 	"github.com/bringg/go_redis_ratelimit/algorithm"
-
 	_ "github.com/bringg/go_redis_ratelimit/algorithm/all"
 )
 
-const (
-	DefaultPrefix = "limiter"
-)
+const DefaultPrefix = "limiter"
 
-var (
-	algorithmPool map[string]algorithm.Algorithm
-)
-
-type (
-	// Limiter controls how frequently events are allowed to happen.
-	Limiter struct {
-		Prefix string
-	}
-)
+// Limiter controls how frequently events are allowed to happen.
+type Limiter struct {
+	Prefix     string
+	algorithms map[string]algorithm.Algorithm
+}
 
 // NewLimiter returns a new Limiter.
 func NewLimiter(rdb *redis.Client) (*Limiter, error) {
-	algorithmPool = make(map[string]algorithm.Algorithm, len(algorithm.Registry))
+	algorithms := make(map[string]algorithm.Algorithm, len(algorithm.Registry))
 
 	var err error
 	for _, info := range algorithm.Registry {
-		if algorithmPool[info.Name], err = info.NewAlgorithm(rdb); err != nil {
+		if algorithms[info.Name], err = info.NewAlgorithm(rdb); err != nil {
 			return nil, err
 		}
 	}
 
 	return &Limiter{
-		Prefix: DefaultPrefix,
+		Prefix:     DefaultPrefix,
+		algorithms: algorithms,
 	}, nil
 }
 
@@ -54,7 +47,7 @@ func (l *Limiter) Allow(key string, limit *Limit) (*algorithm.Result, error) {
 }
 
 func (l *Limiter) findAlgorithm(name string) (algorithm.Algorithm, error) {
-	if algo, ok := algorithmPool[name]; ok {
+	if algo, ok := l.algorithms[name]; ok {
 		return algo, nil
 	}
 

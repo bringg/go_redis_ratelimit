@@ -2,15 +2,12 @@ package algorithm
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 )
 
-var (
-	Registry []*RegInfo
-)
+var Registry []*RegInfo
 
 type (
 	Limit interface {
@@ -78,14 +75,4 @@ type (
 
 func Register(info *RegInfo) {
 	Registry = append(Registry, info)
-}
-
-func Find(name string) (*RegInfo, error) {
-	for _, item := range Registry {
-		if item.Name == name {
-			return item, nil
-		}
-	}
-
-	return nil, fmt.Errorf("didn't find algorithm called %q", name)
 }
