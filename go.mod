@@ -3,7 +3,7 @@ module github.com/bringg/go_redis_ratelimit
 go 1.16
 
 require (
-	github.com/alicebob/miniredis/v2 v2.14.3
+	github.com/alicebob/miniredis/v2 v2.15.1
 	github.com/coinpaprika/ratelimiter v0.2.1
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-redis/redis/v8 v8.8.0
