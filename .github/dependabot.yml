@@ -1,0 +1,23 @@
+version: 2
+updates:
+- package-ecosystem: gomod
+  directory: "/"
+  schedule:
+    interval: daily
+  pull-request-branch-name:
+    separator: "-"
+  open-pull-requests-limit: 3
+  ignore:
+  - dependency-name: github.com/go-redis/redis/v8
+    versions:
+    - 8.4.11
+    - 8.5.0
+    - 8.6.0
+    - 8.7.1
+    - 8.8.0
+  - dependency-name: github.com/alicebob/miniredis/v2
+    versions:
+    - 2.14.3
+  - dependency-name: github.com/stretchr/testify
+    versions:
+    - 1.7.0
