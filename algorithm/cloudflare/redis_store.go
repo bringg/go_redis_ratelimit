@@ -18,12 +18,11 @@ func (s *RedisDataStore) Inc(key string, window time.Time) error {
 	ctx := context.Background()
 	key = mapKey(key, window)
 
-	if _, err := s.RDB.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-		pipe.Incr(ctx, key)
-		pipe.Expire(ctx, key, s.ExpirationTime)
+	pipe := s.RDB.TxPipeline()
+	pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, s.ExpirationTime)
 
-		return nil
-	}); err != nil {
+	if _, err := pipe.Exec(ctx); err != nil {
 		return err
 	}
 
