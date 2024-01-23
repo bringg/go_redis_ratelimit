@@ -3,7 +3,7 @@ bench:
 
 test: lint tools
 	@echo "==> Running tests..."
-	@gotestsum --format-hide-empty-pkg  ./...
+	@gotestsum --format-hide-empty-pkg -- -coverprofile=codecov.out -covermode=atomic ./...
 
 lint: tools
 	golangci-lint run
