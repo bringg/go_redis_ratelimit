@@ -2,7 +2,6 @@ package cloudflare
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -19,12 +18,11 @@ func (s *RedisDataStore) Inc(key string, window time.Time) error {
 	ctx := context.Background()
 	key = mapKey(key, window)
 
-	if _, err := s.RDB.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-		pipe.Incr(ctx, key)
-		pipe.Expire(ctx, key, s.ExpirationTime)
+	pipe := s.RDB.TxPipeline()
+	pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, s.ExpirationTime)
 
-		return nil
-	}); err != nil {
+	if _, err := pipe.Exec(ctx); err != nil {
 		return err
 	}
 
@@ -49,5 +47,5 @@ func (s *RedisDataStore) Get(key string, previousWindow, currentWindow time.Time
 }
 
 func mapKey(key string, window time.Time) string {
-	return fmt.Sprintf("%s_%s", key, window.Format(time.RFC3339))
+	return key + "_" + window.Format(time.RFC3339)
 }

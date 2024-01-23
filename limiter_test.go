@@ -15,16 +15,9 @@ import (
 	"github.com/bringg/go_redis_ratelimit/algorithm/sliding_window"
 )
 
-var limiter = rateLimiter()
-
-func rateLimiter() *Limiter {
-	mr, err := miniredis.Run()
-	if err != nil {
-		panic(err)
-	}
-
+func rateLimiter(addr string) *Limiter {
 	client := redis.NewClient(&redis.Options{
-		Addr: mr.Addr(),
+		Addr: addr,
 	})
 
 	if err := client.FlushDB(context.Background()).Err(); err != nil {
@@ -40,7 +33,12 @@ func rateLimiter() *Limiter {
 }
 
 func TestLimiter_Allow(t *testing.T) {
-	l := rateLimiter()
+	mr, err := miniredis.Run()
+	require.NoError(t, err)
+
+	defer mr.Close()
+
+	l := rateLimiter(mr.Addr())
 
 	limit := &Limit{
 		Algorithm: sliding_window.AlgorithmName,
@@ -84,7 +82,12 @@ func TestLimiter_Allow(t *testing.T) {
 	})
 }
 
+// In benchmarks we will use real redis-server, since mini-redis impacts the benchmarks.
+const redisAddress = "localhost:6379"
+
 func Benchmark_CloudflareAlgorithm(b *testing.B) {
+	limiter := rateLimiter(redisAddress)
+
 	for i := 0; i < b.N; i++ {
 		if _, err := limiter.Allow("cloudflare", &Limit{
 			Algorithm: cloudflare.AlgorithmName,
@@ -97,6 +100,8 @@ func Benchmark_CloudflareAlgorithm(b *testing.B) {
 }
 
 func Benchmark_GcraAlgorithm(b *testing.B) {
+	limiter := rateLimiter(redisAddress)
+
 	for i := 0; i < b.N; i++ {
 		if _, err := limiter.Allow("gcra", &Limit{
 			Algorithm: gcra.AlgorithmName,
@@ -110,6 +115,8 @@ func Benchmark_GcraAlgorithm(b *testing.B) {
 }
 
 func Benchmark_SlidingWindowAlgorithm(b *testing.B) {
+	limiter := rateLimiter(redisAddress)
+
 	for i := 0; i < b.N; i++ {
 		if _, err := limiter.Allow("sliding_window", &Limit{
 			Algorithm: sliding_window.AlgorithmName,
