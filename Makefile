@@ -1,5 +1,5 @@
 bench:
-	go test -benchmem -run=NONE -bench .
+	go test -count 5 -benchmem -run=NONE -bench .
 
 test: lint tools
 	@echo "==> Running tests..."
