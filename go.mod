@@ -3,7 +3,7 @@ module github.com/bringg/go_redis_ratelimit
 go 1.21
 
 require (
-	github.com/alicebob/miniredis/v2 v2.16.1
+	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/coinpaprika/ratelimiter v0.2.1
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/go-redis/redis_rate/v9 v9.1.2
@@ -176,7 +176,7 @@ require (
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	github.com/ykadowak/zerologlint v0.1.3 // indirect
-	github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
+	github.com/yuin/gopher-lua v1.1.0 // indirect
 	gitlab.com/bosi/decorder v0.4.1 // indirect
 	go-simpler.org/sloglint v0.1.2 // indirect
 	go.tmz.dev/musttag v0.7.2 // indirect
