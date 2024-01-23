@@ -163,7 +163,7 @@ func (c *SlidingWindow) retryAfter(ctx context.Context) time.Duration {
 		return minWait
 	}
 
-	res := time.Duration(d / time.Second)
+	res := d / time.Second
 	if res > 0 {
 		return res + 1
 	}
