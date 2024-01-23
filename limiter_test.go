@@ -8,6 +8,7 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/bringg/go_redis_ratelimit/algorithm/cloudflare"
 	"github.com/bringg/go_redis_ratelimit/algorithm/gcra"
@@ -51,7 +52,7 @@ func TestLimiter_Allow(t *testing.T) {
 	t.Run("sliding_window", func(t *testing.T) {
 		res, err := l.Allow("test_me"+t.Name(), limit)
 
-		assert.Nil(t, err)
+		require.NoError(t, err)
 		assert.True(t, res.Allowed)
 		assert.Equal(t, int64(9), res.Remaining)
 	})
@@ -61,7 +62,7 @@ func TestLimiter_Allow(t *testing.T) {
 
 		res, err := l.Allow("test_me"+t.Name(), limit)
 
-		assert.Nil(t, err)
+		require.NoError(t, err)
 		assert.True(t, res.Allowed)
 		assert.Equal(t, int64(9), res.Remaining)
 		assert.Equal(t, res.RetryAfter, time.Duration(-1))
@@ -72,7 +73,11 @@ func TestLimiter_Allow(t *testing.T) {
 
 		res, err := l.Allow("test_me"+t.Name(), limit)
 
-		assert.Nil(t, err)
+		if err != nil {
+			t.Fatalf("err: %+v", err)
+		}
+
+		require.NoError(t, err)
 		assert.True(t, res.Allowed)
 		assert.Equal(t, int64(9), res.Remaining)
 		assert.Equal(t, res.RetryAfter, time.Duration(0))
@@ -81,31 +86,37 @@ func TestLimiter_Allow(t *testing.T) {
 
 func Benchmark_CloudflareAlgorithm(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		limiter.Allow("cloudflare", &Limit{
+		if _, err := limiter.Allow("cloudflare", &Limit{
 			Algorithm: cloudflare.AlgorithmName,
 			Rate:      2000,
 			Period:    60 * time.Second,
-		})
+		}); err != nil {
+			b.Fatalf("Failed to check ratelimit: %+v", err)
+		}
 	}
 }
 
 func Benchmark_GcraAlgorithm(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		limiter.Allow("gcra", &Limit{
+		if _, err := limiter.Allow("gcra", &Limit{
 			Algorithm: gcra.AlgorithmName,
 			Rate:      2000,
 			Burst:     2000,
 			Period:    10 * time.Second,
-		})
+		}); err != nil {
+			b.Fatalf("Failed to check ratelimit: %+v", err)
+		}
 	}
 }
 
 func Benchmark_SlidingWindowAlgorithm(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		limiter.Allow("sliding_window", &Limit{
+		if _, err := limiter.Allow("sliding_window", &Limit{
 			Algorithm: sliding_window.AlgorithmName,
 			Rate:      2000,
 			Period:    10 * time.Second,
-		})
+		}); err != nil {
+			b.Fatalf("Failed to check ratelimit: %+v", err)
+		}
 	}
 }

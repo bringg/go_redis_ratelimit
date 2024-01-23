@@ -37,7 +37,10 @@ func (s *RedisDataStore) Get(key string, previousWindow, currentWindow time.Time
 	prevRes := pipe.Get(ctx, mapKey(key, previousWindow))
 	currRes := pipe.Get(ctx, mapKey(key, currentWindow))
 
-	pipe.Exec(ctx)
+	_, err = pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return
+	}
 
 	prevValue, _ = prevRes.Int64()
 	currValue, _ = currRes.Int64()
