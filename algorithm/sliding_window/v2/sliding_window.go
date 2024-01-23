@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/bringg/go_redis_ratelimit/algorithm"
 )
@@ -57,7 +57,7 @@ func (c *SlidingWindow) Allow() (r *algorithm.Result, err error) {
 	if err := pipe.ZAdd(
 		ctx,
 		c.key,
-		&redis.Z{
+		redis.Z{
 			Member: nowNanos,
 			Score:  float64(nowNanos),
 		},

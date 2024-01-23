@@ -1,6 +1,6 @@
 package sliding_window
 
-import "github.com/go-redis/redis/v8"
+import "github.com/redis/go-redis/v9"
 
 var script = redis.NewScript(`
 -- this script has side-effects, so it requires replicate commands mode

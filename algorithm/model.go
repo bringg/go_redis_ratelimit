@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 var Registry []*RegInfo
@@ -25,13 +25,16 @@ type (
 		Del(ctx context.Context, keys ...string) *redis.IntCmd
 		ScriptLoad(ctx context.Context, script string) *redis.StringCmd
 		ScriptExists(ctx context.Context, hashes ...string) *redis.BoolSliceCmd
-		ZAdd(ctx context.Context, key string, members ...*redis.Z) *redis.IntCmd
+		ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
 		Expire(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd
 		ZRemRangeByScore(ctx context.Context, key string, min string, max string) *redis.IntCmd
 		Eval(ctx context.Context, script string, keys []string, args ...interface{}) *redis.Cmd
 		EvalSha(ctx context.Context, sha1 string, keys []string, args ...interface{}) *redis.Cmd
 		TxPipelined(ctx context.Context, fn func(pipe redis.Pipeliner) error) ([]redis.Cmder, error)
 		ZRangeByScoreWithScores(ctx context.Context, key string, opt *redis.ZRangeBy) *redis.ZSliceCmd
+
+		EvalRO(ctx context.Context, script string, keys []string, args ...interface{}) *redis.Cmd
+		EvalShaRO(ctx context.Context, sha1 string, keys []string, args ...interface{}) *redis.Cmd
 	}
 
 	Algorithm interface {

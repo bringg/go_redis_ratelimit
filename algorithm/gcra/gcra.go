@@ -4,7 +4,7 @@ package gcra
 import (
 	"context"
 
-	"github.com/go-redis/redis_rate/v9"
+	"github.com/go-redis/redis_rate/v10"
 
 	"github.com/bringg/go_redis_ratelimit/algorithm"
 )

@@ -3,7 +3,7 @@ package go_redis_ratelimit
 import (
 	"errors"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/bringg/go_redis_ratelimit/algorithm"
 	_ "github.com/bringg/go_redis_ratelimit/algorithm/all"
