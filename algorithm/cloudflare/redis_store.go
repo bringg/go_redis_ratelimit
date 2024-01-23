@@ -2,7 +2,6 @@ package cloudflare
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -49,5 +48,5 @@ func (s *RedisDataStore) Get(key string, previousWindow, currentWindow time.Time
 }
 
 func mapKey(key string, window time.Time) string {
-	return fmt.Sprintf("%s_%s", key, window.Format(time.RFC3339))
+	return key + "_" + window.Format(time.RFC3339)
 }
