@@ -32,6 +32,7 @@ type (
 		EvalSha(ctx context.Context, sha1 string, keys []string, args ...interface{}) *redis.Cmd
 		TxPipelined(ctx context.Context, fn func(pipe redis.Pipeliner) error) ([]redis.Cmder, error)
 		ZRangeByScoreWithScores(ctx context.Context, key string, opt *redis.ZRangeBy) *redis.ZSliceCmd
+		MGet(ctx context.Context, keys ...string) *redis.SliceCmd
 
 		EvalRO(ctx context.Context, script string, keys []string, args ...interface{}) *redis.Cmd
 		EvalShaRO(ctx context.Context, sha1 string, keys []string, args ...interface{}) *redis.Cmd
