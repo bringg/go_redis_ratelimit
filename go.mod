@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/coinpaprika/ratelimiter v0.2.1
-	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redis/redis_rate/v9 v9.1.2
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/stretchr/testify v1.8.4
