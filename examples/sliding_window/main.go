@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/bringg/go_redis_ratelimit"
 	"github.com/bringg/go_redis_ratelimit/algorithm/sliding_window"

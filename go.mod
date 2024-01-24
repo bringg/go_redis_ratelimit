@@ -5,9 +5,9 @@ go 1.21
 require (
 	github.com/alicebob/miniredis/v2 v2.31.1
 	github.com/coinpaprika/ratelimiter v0.2.1
-	github.com/go-redis/redis/v8 v8.11.4
-	github.com/go-redis/redis_rate/v9 v9.1.2
+	github.com/go-redis/redis_rate/v10 v10.0.1
 	github.com/golangci/golangci-lint v1.55.2
+	github.com/redis/go-redis/v9 v9.4.0
 	github.com/stretchr/testify v1.8.4
 	gotest.tools/gotestsum v1.11.0
 )
@@ -43,7 +43,7 @@ require (
 	github.com/butuzov/mirror v1.1.0 // indirect
 	github.com/catenacyber/perfsprint v0.2.0 // indirect
 	github.com/ccojocar/zxcvbn-go v1.0.1 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
