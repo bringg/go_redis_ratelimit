@@ -7,7 +7,7 @@ require (
 	github.com/coinpaprika/ratelimiter v0.2.1
 	github.com/go-redis/redis_rate/v10 v10.0.1
 	github.com/golangci/golangci-lint v1.56.2
-	github.com/redis/go-redis/v9 v9.4.0
+	github.com/redis/go-redis/v9 v9.5.1
 	github.com/stretchr/testify v1.8.4
 	gotest.tools/gotestsum v1.11.0
 )
