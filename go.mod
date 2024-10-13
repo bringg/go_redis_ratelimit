@@ -1,6 +1,6 @@
 module github.com/bringg/go_redis_ratelimit
 
-go 1.22.6
+go 1.23
 
 require (
 	github.com/alicebob/miniredis/v2 v2.33.0
