@@ -8,7 +8,7 @@ require (
 	github.com/go-redis/redis_rate/v10 v10.0.1
 	github.com/golangci/golangci-lint v1.62.0
 	github.com/redis/go-redis/v9 v9.7.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	gotest.tools/gotestsum v1.12.0
 )
 
