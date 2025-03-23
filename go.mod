@@ -8,7 +8,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/coinpaprika/ratelimiter v0.2.1
 	github.com/go-redis/redis_rate/v10 v10.0.1
-	github.com/golangci/golangci-lint v1.64.7
+	github.com/golangci/golangci-lint v1.64.8
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/stretchr/testify v1.10.0
 	gotest.tools/gotestsum v1.12.1
