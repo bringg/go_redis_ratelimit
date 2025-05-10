@@ -11,7 +11,7 @@ require (
 	github.com/golangci/golangci-lint v1.64.8
 	github.com/redis/go-redis/v9 v9.8.0
 	github.com/stretchr/testify v1.10.0
-	gotest.tools/gotestsum v1.12.1
+	gotest.tools/gotestsum v1.12.2
 )
 
 require (
