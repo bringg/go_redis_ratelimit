@@ -35,7 +35,7 @@ func (c *SlidingWindow) Allow() (r *algorithm.Result, err error) {
 
 	count, err := c.allowCheckCard(ctx, c.key, clearBefore)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get redis cardinality: %v", err)
+		return nil, fmt.Errorf("failed to get redis cardinality: %v", err)
 	}
 
 	resetAfter := limit.GetPeriod()
@@ -62,15 +62,15 @@ func (c *SlidingWindow) Allow() (r *algorithm.Result, err error) {
 			Score:  float64(nowNanos),
 		},
 	).Err(); err != nil {
-		return nil, fmt.Errorf("Failed to ZAdd proceeding with Expire: %v", err)
+		return nil, fmt.Errorf("failed to ZAdd proceeding with Expire: %v", err)
 	}
 
 	if err := pipe.Expire(ctx, c.key, limit.GetPeriod()+time.Second).Err(); err != nil {
-		return nil, fmt.Errorf("Failed to Expire: %v", err)
+		return nil, fmt.Errorf("failed to Expire: %v", err)
 	}
 
 	if _, err := pipe.Exec(ctx); err != nil {
-		return nil, fmt.Errorf("Failed to Expire: %v", err)
+		return nil, fmt.Errorf("failed to Expire: %v", err)
 	}
 
 	return &algorithm.Result{

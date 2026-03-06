@@ -33,7 +33,6 @@ func (s *RedisDataStore) Get(key string, previousWindow, currentWindow time.Time
 	ctx := context.Background()
 
 	res, err := s.RDB.MGet(ctx, mapKey(key, previousWindow), mapKey(key, currentWindow)).Result()
-
 	if err != nil {
 		return
 	}
