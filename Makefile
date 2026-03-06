@@ -6,9 +6,9 @@ test: lint tools
 	@gotestsum --format-hide-empty-pkg -- -coverprofile=codecov.out -covermode=atomic ./...
 
 lint: tools
-	golangci-lint run
+	@golangci-lint run
 
 .PHONY: tools
 tools:
 	@echo "==> Installing tools from tools.go..."
-	@awk -F'"' '/_/ {print $$2}' tools.go | xargs -I % go install %
+	@go list tool | xargs -i go install {}

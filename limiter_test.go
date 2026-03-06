@@ -70,7 +70,6 @@ func TestLimiter_Allow(t *testing.T) {
 		limit.Algorithm = cloudflare.AlgorithmName
 
 		res, err := l.Allow("test_me"+t.Name(), limit)
-
 		if err != nil {
 			t.Fatalf("err: %+v", err)
 		}

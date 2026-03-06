@@ -11,6 +11,20 @@ updates:
     reviewers:
       - "@bringg/foundation"
     assignees:
-      - yosiat
+      - ormelaver-cyber
+      - shamil
+      - ramhr
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: saturday
+    pull-request-branch-name:
+      separator: "-"
+    reviewers:
+      - "@bringg/foundation"
+    assignees:
+      - ormelaver-cyber
       - shamil
       - ramhr

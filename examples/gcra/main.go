@@ -28,7 +28,6 @@ func main() {
 		Period:    2 * time.Minute,
 		Burst:     10,
 	})
-
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,13 +1,16 @@
+version: '2'
+
 run:
-  timeout: 3m
+  timeout: 15m
+  modules-download-mode: readonly
+  allow-parallel-runners: true
 
 linters:
-  disable-all: true
+  default: none
+
   enable: # please keep this alphabetized
   - gocritic
   - gocyclo
-  - gofmt
-  - goimports
   - govet
   - ineffassign
   - misspell
@@ -19,12 +22,21 @@ linters:
   - unparam
   - unused
 
-linters-settings:
-  prealloc:
-    simple: true
-    for-loops: true
-    range-loops: true
-  revive:
+  exclusions:
+    generated: lax
+
+    presets:
+    - comments
+
     rules:
-    - name: unused-parameter
-      disabled: true
+    - linters: ['revive']
+      text: '^blank-imports:'
+
+    - linters: ['revive']
+      text: '^redefines-builtin-id:'
+
+formatters:
+  enable: # please keep this alphabetized
+  - gofmt
+  - gofumpt
+  - goimports

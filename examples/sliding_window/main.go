@@ -27,7 +27,6 @@ func main() {
 		Rate:      10,
 		Period:    2 * time.Minute,
 	})
-
 	if err != nil {
 		log.Fatal(err)
 	}
